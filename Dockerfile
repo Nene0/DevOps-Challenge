@@ -22,6 +22,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
+# Expose the port
+EXPOSE 8000
+
 # Run the command to start uWSGI
-CMD ["python", "your_script_name.py"]
+CMD ["python", "hello.py"]
 
