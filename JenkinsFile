@@ -11,9 +11,9 @@ pipeline {
         stage('Test'){
             steps{
                 // Add your test steps here. For example:
-                sh 'docker run --name my-marian1-app-container -d -p 8000:8000 neneobianodo/pythonimage'
-                sh 'curl localhost:8000'
-                sh 'docker stop my-marian1-app-container && docker rm my-marian1-app-container'
+                sh 'docker run --name my-marianene-app-container -d -p 8001:8000 neneobianodo/pythonimage'
+                sh 'curl localhost:8001'
+                sh 'docker stop my-marianene-app-container && docker rm my-marianene-app-container'
             }
         }
 
