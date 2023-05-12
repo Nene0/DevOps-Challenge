@@ -11,9 +11,9 @@ pipeline {
         stage('Test'){
             steps{
                 // Add your test steps here. For example:
-                sh 'docker run --name my-nenetb-app-container -d -p 8007:8000 neneobianodo/pythonimage'
+                sh 'docker run --name my-nenetb1-app-container -d -p 8007:8000 neneobianodo/pythonimage'
                 sh 'curl localhost:8007'
-                sh 'docker stop my-nenetb-app-container && docker rm my-nenetb-app-container'
+                sh 'docker stop my-nenetb1-app-container && docker rm my-nenetb1-app-container'
             }
         }
 
