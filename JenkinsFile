@@ -11,7 +11,7 @@ pipeline {
         stage('Test'){
             steps{
                 // Add your test steps here. For example:
-                sh 'docker run --name test-container -d -p 8001:8000 neneobianodo/pythonimage'
+                sh 'docker run --name test-container -d -p 8000:8000 neneobianodo/pythonimage'
                 sh 'curl localhost:8001'
                 sh 'docker stop test-container && docker rm test-container'
             }
