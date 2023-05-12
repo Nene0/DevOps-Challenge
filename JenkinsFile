@@ -11,15 +11,15 @@ pipeline {
         stage('Test'){
             steps{
                 // Add your test steps here. For example:
-                sh 'docker run --name my-tornado-app-container -d -p 8000:8000 neneobianodo/pythonimage'
+                sh 'docker run --name my-nenes-app-container -d -p 8000:8000 neneobianodo/pythonimage'
                 sh 'curl 172.17.0.1:8000'
-                sh 'docker stop my-tornado-app-container && docker rm my-tornado-app-container'
+                sh 'docker stop my-nenes-app-container && docker rm my-nenes-app-container'
             }
         }
 
         stage('Deploy') {
             steps {
-                sh 'docker run -d -p 8000:8000 --name=my-tornado-app-container neneobianodo/pythonimage'
+                sh 'docker run -d -p 8000:8000 --name=my-nenes-app-container neneobianodo/pythonimage'
             }
         }
     }
