@@ -17,3 +17,4 @@ EXPOSE 8000
 # Run the command to start uWSGI
 CMD ["python", "hello.py"]
 
+

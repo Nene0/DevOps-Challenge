@@ -30,19 +30,20 @@ pipeline {
         
         stage('Testing -running in Jenkins Node'){
             steps{
-                sh 'docker run -d --name $(JOB_NAME) -p 8000:8000 ${img}'
+                // Add your test steps here. For example:
+                sh 'docker run --name test-container -d -p 8001:8000 neneobianodo/pythonimage'
+                sh 'curl localhost:8001'
+                sh 'docker stop test-container && docker rm test-container'
             }
         }
         
         stage('Push To DockerHub') {
             steps {
-                script {
-                    docker.withRegistry( 'https://registry.hub.docker.com ', registryCredential ) {
-                        dockerImage.push()
-                    }
-                }
+                sh 'docker run -d -p 8000:8000 --name=my-tonado-app-container neneobianodo/pythonimage'
             }
         }
+    }
+}
 
          stage('Deploy to Test Server') {
             steps {
