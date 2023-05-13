@@ -1,28 +1,66 @@
+def img
 pipeline {
+    environment {
+        registry = "neneobianodo/pythonimage" //To push an image to Docker Hub, you must first name your local image using your Docker Hub username and the repository name that you created through Docker Hub on the web.
+        registryCredential = 'dockerhub'
+        githubCredential = '9a03c1b9-1bff-4945-9330-be0a8c045dce'
+        dockerImage = ''
+    }
     agent any
-
+    
     stages {
-        stage('Build') {
+        
+        stage('checkout') {
             steps {
-                sh 'docker build -t neneobianodo/pythonimage .'
+                git branch: 'master',
+                credentialsId: githubCredential,
+                url: 'https://github.com/Nene0/DevOps-Challenge.git'
+                }
+            }  
+            
+        stage('Build Image') {
+            steps {
+                script {
+                    img = registry + ":${env.BUILD_ID}"
+                    println ("${img}")
+                    dockerImage = docker.build("${img}")
+                }
             }
         }
         
-        stage('Test'){
+        stage('Testing -running in Jenkins Node'){
             steps{
-                // Add your test steps here. For example:
-                sh 'docker run --name test-container -d -p 8001:8000 neneobianodo/pythonimage'
-                sh 'curl localhost:8001'
-                sh 'docker stop test-container && docker rm test-container'
+                sh 'docker run -d --name $(JOB_NAME) -p 8000:8000 ${img}'
+            }
+        }
+        
+        stage('Push To DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry( 'https://registry.hub.docker.com ', registryCredential ) {
+                        dockerImage.push()
+                    }
+                }
             }
         }
 
-        stage('Deploy') {
+         stage('Deploy to Test Server') {
             steps {
-                sh 'docker run -d -p 8000:8000 --name=my-tonado-app-container neneobianodo/pythonimage'
+                script {
+                    def stopcontainer = "docker stop ${JOB_NAME}"
+                    def delcontName = "docker rm ${JOB_NAME}"
+                    def delimages = 'docker image prune -a --force'
+                    def drun = "docker run -d --name ${JOB_NAME} -p 8000:8000 ${img}"
+                    println "${drun}"
+                    sshagent(['docker-test']) {
+                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@192.168.1.16 ${stopcontainer} "
+                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@192.168.1.16 ${delcontName}"
+                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@192.168.1.16 ${delimages}"
+
+                    // some block
+                        sh "ssh -o StrictHostKeyChecking=no docker@192.168.1.16 ${drun}"
+                    }
+                }
             }
         }
     }
-}
-
-
