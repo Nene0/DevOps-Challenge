@@ -29,11 +29,10 @@ pipeline {
         }
         
         stage('Testing -running in Jenkins Node'){
-            steps{
-                // Add your test steps here. For example:
-                sh 'docker run --name test-container -d -p 8001:8000 neneobianodo/pythonimage'
+            steps {
+                sh 'docker run --name tradebyte_pipeline -d -p 8001:8000 neneobianodo/pythonimage'
                 sh 'curl localhost:8001'
-                sh 'docker stop test-container && docker rm test-container'
+                sh 'docker stop tradebyte_pipeline && docker rm tradebyte_pipeline'
             }
         }
         
@@ -42,10 +41,9 @@ pipeline {
                 sh 'docker run -d -p 8000:8000 --name=my-tonado-app-container neneobianodo/pythonimage'
             }
         }
-    }
-}
 
-         stage('Deploy to Test Server') {
+
+        stage('Deploy to Test Server') {
             steps {
                 script {
                     def stopcontainer = "docker stop ${JOB_NAME}"
@@ -64,4 +62,9 @@ pipeline {
                 }
             }
         }
+
     }
+}
+
+         
+    
