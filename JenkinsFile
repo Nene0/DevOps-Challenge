@@ -2,12 +2,12 @@ def img
 pipeline {
     environment {
         registry = "neneobianodo/pythonimage" //To push an image to Docker Hub, you must first name your local image using your Docker Hub username and the repository name that you created through Docker Hub on the web.
-        registryCredential = 'dockerhub'
+        registryCredential = 'dockehub'
         githubCredential = '9a03c1b9-1bff-4945-9330-be0a8c045dce'
         dockerImage = ''
     }
     agent any
-    
+
     stages {
         
         stage('checkout') {
@@ -17,6 +17,15 @@ pipeline {
                 url: 'https://github.com/Nene0/DevOps-Challenge.git'
                 }
             }  
+
+        // stage ("Stop previous running container"){
+        //     steps{
+        //         sh returnStatus: true, script: 'docker stop $(docker ps -a | grep ${JOB_NAME} | awk \'{print $1}\')'
+        //         sh returnStatus: true, script: 'docker rm ${JOB_NAME}'
+        //         sh returnStatus: true, script: 'docker rmi $(docker images | grep ${registry} | awk \'{print $3}\') --force' //this will delete all images
+                
+        //     }
+        // }
             
         stage('Build Image') {
             steps {
@@ -27,18 +36,21 @@ pipeline {
                 }
             }
         }
+
         
         stage('Testing -running in Jenkins Node'){
             steps {
-                sh 'docker run --name tradebyte_pipeline -d -p 8001:8000 neneobianodo/pythonimage'
-                sh 'curl localhost:8001'
-                sh 'docker stop tradebyte_pipeline && docker rm tradebyte_pipeline'
+                sh label: '', script: "docker run --name tradebyte_pipeline -d -p 8001:8000 ${img}"
             }
         }
         
         stage('Push To DockerHub') {
             steps {
-                sh 'docker run -d -p 8000:8000 --name=my-tonado-app-container neneobianodo/pythonimage'
+                script {
+                    docker.withRegistry( 'https://registry.hub.docker.com ', registryCredential ) {
+                        dockerImage.push()
+                    }
+                }
             }
         }
 
@@ -46,25 +58,26 @@ pipeline {
         stage('Deploy to Test Server') {
             steps {
                 script {
-                    def stopcontainer = "docker stop ${JOB_NAME}"
-                    def delcontName = "docker rm ${JOB_NAME}"
+                    def stopcontainer = "docker stop tradebyte_pipeline"
+                    def delcontName = "docker rm tradebyte_pipeline"
                     def delimages = 'docker image prune -a --force'
-                    def drun = "docker run -d --name ${JOB_NAME} -p 8000:8000 ${img}"
+                    def drun = "docker run -d --name tradebyte_pipeline -p 8000:8000 ${img}"
                     println "${drun}"
                     sshagent(['docker-test']) {
-                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@192.168.1.16 ${stopcontainer} "
-                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@192.168.1.16 ${delcontName}"
-                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@192.168.1.16 ${delimages}"
+                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@18.159.214.253 ${stopcontainer} "
+                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@18.159.214.253 ${delcontName}"
+                        sh returnStatus: true, script: "ssh -o StrictHostKeyChecking=no docker@18.159.214.253 ${delimages}"
 
                     // some block
-                        sh "ssh -o StrictHostKeyChecking=no docker@192.168.1.16 ${drun}"
+                        sh "ssh -o StrictHostKeyChecking=no docker@18.159.214.253  ${drun}"
                     }
-                }
+                } 
             }
         }
 
     }
 }
+
 
          
     
